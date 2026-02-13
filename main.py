@@ -46,3 +46,13 @@ async def upload_web(request: Request, file: UploadFile = File(...), db: Session
     db.commit()
 
     return RedirectResponse(url="/", status_code=303)
+
+@app.post("/items/{item_id}/delete")
+async def delete_item(item_id: int, db: Session = Depends(get_db)):
+
+    item = db.query(models.Item).filter(models.Item.id == item_id).first()   
+    if item:
+        db.delete(item)
+        db.commit()
+
+    return RedirectResponse(url="/", status_code=303)

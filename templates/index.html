@@ -2,49 +2,178 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Craft Lens - AIハンドメイド支援</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
     <style>
-        body { background-color: #f8f9fa; }
-        .hero { background: white; padding: 2rem; border-radius: 1rem; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        @import url('https://fonts.googleapis.com/css2?family=Kiwi+Maru:wght@300;400;500&display=swap');
+
+        body {
+            background-color: #fcf9f5; 
+            font-family: 'Kiwi Maru', serif;
+            color: #5a4a42;
+        }
+        .navbar {
+            background-color: #ffffff;
+            border-bottom: 2px solid #eee4e1;
+        }
+        .hero-section {
+            background: linear-gradient(135deg, #eee4e1 0%, #fcf9f5 100%);
+            padding: 60px 0;
+            border-radius: 0 0 50px 50px;
+            margin-bottom: 40px;
+        }
+        .upload-card {
+            background: white;
+            border: 2px dashed #d1b8b0;
+            border-radius: 20px;
+            padding: 30px;
+            transition: 0.3s;
+        }
+        .btn-analyze {
+            background-color: #d1b8b0;
+            color: white;
+            border-radius: 30px;
+            padding: 10px 30px;
+            font-weight: bold;
+            border: none;
+        }
+        .btn-analyze:hover {
+            background-color: #bfa59d;
+            color: white;
+        }
+        .item-card {
+            border: none;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 10px 20px rgba(90, 74, 66, 0.05);
+            transition: transform 0.3s;
+            background: white;
+        }
+        .item-card:hover {
+            transform: translateY(-5px);
+        }
+        .price-badge {
+            background-color: #f8ebe9;
+            color: #d88a8a;
+            font-weight: bold;
+            border-radius: 10px;
+            padding: 5px 12px;
+        }
+
+        .action-row{
+      display: flex;
+      gap: 12px;
+      margin-top: 16px;
+    }
+
+    .action-row > button{
+      flex: 1;
+    }
+
+    .action-row > form{
+      flex: 1;
+    }
+
+    .btn-action{
+      border-radius: 12px;
+      padding: 12px 0;
+      font-weight: 600;
+    }
+
     </style>
 </head>
 <body>
-    <div class="container py-5">
-        <div class="hero text-center mb-5">
-            <h1 class="display-4 fw-bold text-primary">Craft Lens</h1>
-            <p class="lead">あなたの作品をAIが分析し、売れる説明文を提案します</p>
-            
-            <form action="/upload-web" method="post" enctype="multipart/form-data" class="mt-4">
-                <input type="file" name="file" class="form-control mb-2" required>
-                <button type="submit" class="btn btn-primary btn-lg w-100">AIで分析する</button>
-            </form>
+    <div id="loadingOverlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.8); z-index: 9999; flex-direction: column; align-items: center; justify-content: center;">
+        <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem; color: #d1b8b0 !important;">
+            <span class="visually-hidden">Loading...</span>
         </div>
-
-        <h2 class="mb-4">最近の分析結果</h2>
-        <div class="row">
-            {% for item in items %}
-            <div class="col-md-4 mb-4">
-                <div class="card h-100">
-                    {% if item.image_url %}
-                    <img src="{{ item.image_url }}" class="card-img-top" alt="作品画像" style="height: 200px; object-fit: cover;">
-                    {% endif %}
-                    <div class="card-body">
-                        <h5 class="card-title">{{ item.title }}</h5>
-                        <p class="card-text text-muted" style="font-size: 0.8rem;">{{ item.description[:100] }}...</p>
-                        <span class="badge bg-success">{{ item.suggested_price }}</span>
-                        <div class="mt-3 text-end">
-                            <form action="/items/{{ item.id }}/delete" method="post" onsubmit="return confirm('本当に削除しますか？');">
-                                <button type="submit" class="btn btn-outline-danger btn-sm">
-                                    <i class="bi bi-trash"></i> 削除
-                                </div>
-                            </form>
-                        </div>
+        <p class="mt-3 fw-bold" style="color: #5a4a42;">画像解析中...</p>
+    </div>
+    <nav class="navbar mb-0">
+        <div class="container">
+            <span class="navbar-brand mb-0 h1"><i class="bi bi-camera-fill me-2"></i>Craft Lens</span>
+        </div>
+    </nav>
+    
+    <div class="hero-section text-center">
+        <div class="container">
+            <h1 class="display-5 fw-bold mb-3">出品AIアシスタント</h1>
+            <p class="lead mb-4">画像を解析し、タイトル・説明文・価格を自動生成します</p>
+            
+            <div class="row justify-content-center">
+                <div class="col-md-6">
+                    <div class="upload-card shadow-sm">
+                        <form action="/upload-web" method="post" enctype="multipart/form-data" onsubmit="return showLoading();">
+                            <div class="mb-3">
+                                <input type="file" name="file" class="form-control" id="inputGroupFile02" required>
+                            </div>
+                            <button type="submit" class="btn btn-analyze w-100 shadow-sm" id="submitBtn">
+                                <span id="btnText">
+                                <i class="bi bi-stars me-2"></i>AIで生成する
+                                </span>
+                            </button>
+                        </form>
                     </div>
                 </div>
             </div>
-            {% endfor %}
         </div>
     </div>
+    
+    <div class="container mb-5">
+        <h3 class="mb-4"><i class="bi bi-collection-fill me-2"></i>ギャラリー</h3>
+        <div class="row row-cols-1 row-cols-md-3 g-4">
+            {% for item in items %}
+            <div class="col">
+                <div class="card h-100 item-card">
+                    {% if item.image_url %}
+                    <img src="{{ item.image_url }}" class="card-img-top" style="height: 250px; object-fit: cover;">
+                    {% endif %}
+                    <div class="card-body p-4">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <h5 class="card-title fw-bold mb-0">{{ item.title }}</h5>    
+                        </div>
+                        <p class="card-text text-muted mb-4" style="font-size: 0.85rem; line-height: 1.6;">
+                            {{ item.description }}
+                        </p>
+                        <span class="price-badge">{{ item.suggested_price }}</span>
+                        <div class="mt-auto d-flex justify-content-end gap-2">
+                            <button type="button" class="btn btn-sm btn-outline-secondary" 
+                                    onclick="navigator.clipboard.writeText('{{ item.description | e }}'); alert('コピーしました！')">
+                                <i class="bi bi-clipboard me-1"></i>コピー
+                            </button>
+                        
+                            <form action="/items/{{ item.id }}/delete" method="post" onsubmit="return confirm('本当に削除しますか？');" class="d-inline">
+                                <button type="submit" class="btn btn-sm btn-outline-danger">
+                                    <i class="bi bi-trash3 me-1"></i>削除
+                                </button>
+                            </form>
+                        </div>                         
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+    <script>
+    function showLoading() {
+    const overlay = document.getElementById('loadingOverlay');
+    const btn = document.querySelector('.btn-analyze');
+    const btnText = document.getElementById('btnText');
+
+    if (overlay) overlay.style.display = 'flex';
+
+    if (btnText) {
+        btnText.innerHTML = '<i class="bi bi-hourglass-split me-2"></i>AIが解析中...';
+    }
+
+    setTimeout(() => {
+        if (btn) btn.disabled = true;
+    }, 0);
+        return true;
+        }
+        </script>
+    </body> </html>
 </body>
 </html>

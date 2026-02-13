@@ -5,6 +5,7 @@ from fastapi.staticfiles import StaticFiles
 from sqlalchemy.orm import Session
 import models  
 import shutil
+import json
 from database import engine, get_db 
 from services import analyze_image_file
 
@@ -23,21 +24,22 @@ async def read_root(request: Request, db: Session = Depends(get_db)):
 @app.post("/upload-web")
 async def upload_web(request: Request, file: UploadFile = File(...), db: Session = Depends(get_db)):
 
-    # 1. 画像を指定のフォルダに保存する
+    # 画像保存
     file_path = f"static/uploads/{file.filename}"
     with open(file_path, "wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
     
-    # 2. 保存した画像を開いてAI分析（servicesに送る）
+    # AI分析
     with open(file_path, "rb") as f:
         content = f.read()
-    ai_result = analyze_image_file(content)
+    ai_raw_result = analyze_image_file(content)
+    res = json.loads(ai_raw_result)
     
-    # 3. DB保存（image_urlにフォルダ内のパスを入れる）
+    # DB保存
     new_item = models.Item(
-        title="AI分析作品",
-        description=ai_result,
-        suggested_price="分析済",
+        title=res.get("title", "無題の作品"),
+        description=res.get("description", ""),
+        suggested_price=res.get("price", "価格未設定"), 
         image_url=f"/{file_path}"
     )
     db.add(new_item)

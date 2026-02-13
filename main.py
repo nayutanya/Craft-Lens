@@ -19,9 +19,9 @@ async def read_root(request: Request, db: Session = Depends(get_db)):
 
 @app.post("/upload-web")
 async def upload_web(request: Request, file: UploadFile = File(...), db: Session = Depends(get_db)):
+
     content = await file.read()
     ai_result = analyze_image_file(content)
-    
     new_item = models.Item(
         title="AI分析作品",
         description=ai_result,
@@ -30,7 +30,5 @@ async def upload_web(request: Request, file: UploadFile = File(...), db: Session
     )
     db.add(new_item)
     db.commit()
-    
-    # 保存したらトップページにリダイレクト（戻る）
-    from fastapi.responses import RedirectResponse
+
     return RedirectResponse(url="/", status_code=303)

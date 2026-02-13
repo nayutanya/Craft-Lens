@@ -1,8 +1,9 @@
 from fastapi import FastAPI, Depends
+from fastapi import UploadFile, File
 from sqlalchemy.orm import Session
 import models
 from database import engine, get_db
-from services import analyze_handmade_image
+from services import analyze_image_file
 
 # 起動時にデータベーステーブルを作成する
 models.Base.metadata.create_all(bind=engine)
@@ -42,3 +43,31 @@ def get_items(db: Session = Depends(get_db)):
     # データベースから全件取得する
     items = db.query(models.Item).all()
     return items
+
+@app.get("/items")
+def get_all_items(db: Session = Depends(get_db)):
+    # データベースに保存されている全作品を取得する
+    items = db.query(models.Item).all()
+    return items
+
+from fastapi import UploadFile, File # 冒頭のimportに追加
+
+@app.post("/upload")
+async def upload_image(file: UploadFile = File(...), db: Session = Depends(get_db)):
+    # 1. アップロードされた画像を読み込む
+    content = await file.read()
+    
+    # 2. AIで解析
+    ai_result = analyze_image_file(content)
+    
+    # 3. DBに保存
+    new_item = models.Item(
+        title="アップロード作品",
+        description=ai_result,
+        suggested_price="分析結果を参照",
+        image_url="local_upload" # 今回は簡易的に
+    )
+    db.add(new_item)
+    db.commit()
+    
+    return {"message": "分析完了！DBに保存しました", "analysis": ai_result}

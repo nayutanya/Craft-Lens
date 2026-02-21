@@ -1,4 +1,4 @@
-from sqlalchemy import Column, String, Integer, DateTime
+from sqlalchemy import Column, String, Text, Integer, DateTime
 from sqlalchemy.ext.declarative import declarative_base
 import datetime
 
@@ -9,7 +9,7 @@ class Item(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     title = Column(String)
-    description = Column(String)
+    description = Column(Text)
     suggested_price = Column(String)
     image_url = Column(String)
     created_at = Column(DateTime, default=datetime.datetime.now)

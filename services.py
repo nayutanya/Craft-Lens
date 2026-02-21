@@ -2,10 +2,14 @@ import os
 import base64
 from openai import OpenAI
 
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+api_key = os.getenv("OPENAI_API_KEY")
+if not api_key:
+    print("Warning: OPENAI_API_KEY is not set.")
+client = OpenAI(api_key=api_key)
 
-def analyze_image_file(file_content: bytes):
+def analyze_image_file(file_content: bytes, prompt: str):
     base64_image = base64.b64encode(file_content).decode('utf-8')
+    full_prompt = f"{prompt}\n\n出力は必ず以下の項目を持つJSON形式にしてください：'title', 'description', 'price', 'reason'"
 
     response = client.chat.completions.create(
         model="gpt-4o-mini",
@@ -15,7 +19,7 @@ def analyze_image_file(file_content: bytes):
                 "content": [
                     {
                         "type": "text", 
-                        "text": "ハンドメイド専門家として画像を分析し、以下の4つの項目を【必ずJSON形式】で返してください。項目名：'title', 'description', 'price', 'reason' (価格の理由)。"
+                        "text": full_prompt
                     },
                     {
                         "type": "image_url",

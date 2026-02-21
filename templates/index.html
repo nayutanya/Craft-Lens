@@ -82,6 +82,29 @@
       font-weight: 600;
     }
 
+    .description-preview {
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        line-height: 1.6;
+        font-size: 0.85rem;
+    }
+
+    .view-more-link {
+        color: #d1b8b0;
+        text-decoration: none;
+        font-weight: bold;
+        font-size: 0.8rem;
+        display: block;
+        margin-top: 5px;
+    }
+    .view-more-link:hover {
+        color: #bfa59d;
+        text-decoration: underline;
+    }
+
     </style>
 </head>
 <body>
@@ -105,15 +128,19 @@
             <div class="row justify-content-center">
                 <div class="col-md-6">
                     <div class="upload-card shadow-sm">
-                        <form action="/upload-web" method="post" enctype="multipart/form-data" onsubmit="return showLoading();">
-                            <div class="mb-3">
-                                <input type="file" name="file" class="form-control" id="inputGroupFile02" required>
-                            </div>
-                            <button type="submit" class="btn btn-analyze w-100 shadow-sm" id="submitBtn">
-                                <span id="btnText">
-                                <i class="bi bi-stars me-2"></i>AIで生成する
-                                </span>
-                            </button>
+                        <form action="/upload-web" method="post" enctype="multipart/form-data" class="upload-section">
+                            <input type="file" name="file" required>
+                            
+                            <select name="length">
+                                <option value="short">短文</option>
+                                <option value="medium" selected>標準</option>
+                                <option value="long">長文</option>
+                            </select>
+                        
+                            <input type="number" name="material_cost" placeholder="材料費 (円)" value="0">
+                            <input type="number" name="work_hours" placeholder="制作時間 (時間)" value="0" step="0.5">
+                        
+                            <button type="submit">AIで解析・保存</button>
                         </form>
                     </div>
                 </div>
@@ -134,10 +161,11 @@
                         <div class="d-flex justify-content-between align-items-start mb-2">
                             <h5 class="card-title fw-bold mb-0">{{ item.title }}</h5>    
                         </div>
-                        <p class="card-text text-muted mb-4" style="font-size: 0.85rem; line-height: 1.6;">
+                        <p class="description-preview text-muted mb-2">
                             {{ item.description }}
                         </p>
-                        <span class="price-badge">{{ item.suggested_price }}</span>
+                        <a href="/items/{{ item.id }}" class="view-more-link mb-3">（続きを見る）</a>
+                        <span class="price-badge">{{ item.suggested_price }} 円</span>
                         <div class="mt-auto d-flex justify-content-end gap-2">
                             <button type="button" class="btn btn-sm btn-outline-secondary" 
                                     onclick="navigator.clipboard.writeText('{{ item.description | e }}'); alert('コピーしました！')">
@@ -153,27 +181,10 @@
                     </div>
                 </div>
             </div>
+            {% endfor %}
         </div>
     </div>
-    {% endfor %}
-    <script>
-    function showLoading() {
-    const overlay = document.getElementById('loadingOverlay');
-    const btn = document.querySelector('.btn-analyze');
-    const btnText = document.getElementById('btnText');
-
-    if (overlay) overlay.style.display = 'flex';
-
-    if (btnText) {
-        btnText.innerHTML = '<i class="bi bi-hourglass-split me-2"></i>AIが解析中...';
-    }
-
-    setTimeout(() => {
-        if (btn) btn.disabled = true;
-    }, 0);
-        return true;
-        }
-        </script>
+    <script src="/static/js/main.js" defer></script>
     </body> </html>
 </body>
 </html>

@@ -9,79 +9,95 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Kiwi+Maru:wght@300;400;500&display=swap');
 
-        body {
-            background-color: #fcf9f5; 
-            font-family: 'Kiwi Maru', serif;
-            color: #5a4a42;
-        }
-        .navbar {
-            background-color: #ffffff;
-            border-bottom: 2px solid #eee4e1;
-        }
-        .hero-section {
-            background: linear-gradient(135deg, #eee4e1 0%, #fcf9f5 100%);
-            padding: 60px 0;
-            border-radius: 0 0 50px 50px;
-            margin-bottom: 40px;
-        }
-        .upload-card {
-            background: white;
-            border: 2px dashed #d1b8b0;
-            border-radius: 20px;
-            padding: 30px;
-            transition: 0.3s;
-        }
-        .btn-analyze {
-            background-color: #d1b8b0;
-            color: white;
-            border-radius: 30px;
-            padding: 10px 30px;
-            font-weight: bold;
-            border: none;
-        }
-        .btn-analyze:hover {
-            background-color: #bfa59d;
-            color: white;
-        }
-        .item-card {
-            border: none;
-            border-radius: 15px;
-            overflow: hidden;
-            box-shadow: 0 10px 20px rgba(90, 74, 66, 0.05);
-            transition: transform 0.3s;
-            background: white;
-        }
-        .item-card:hover {
-            transform: translateY(-5px);
-        }
-        .price-badge {
-            background-color: #f8ebe9;
-            color: #d88a8a;
-            font-weight: bold;
-            border-radius: 10px;
-            padding: 5px 12px;
-        }
-
-        .action-row{
-      display: flex;
-      gap: 12px;
-      margin-top: 16px;
+    body {
+        background-color: #fcf9f5; 
+        font-family: 'Kiwi Maru', serif;
+        color: #5a4a42;
     }
-
+    .navbar {
+        background-color: #ffffff;
+        border-bottom: 2px solid #eee4e1;
+    }
+    .hero-section {
+        background: linear-gradient(135deg, #eee4e1 0%, #fcf9f5 100%);
+        padding: 60px 0;
+        border-radius: 0 0 50px 50px;
+        margin-bottom: 40px;
+    }
+    .upload-card {
+        background: white;
+        border: 2px dashed #d1b8b0;
+        border-radius: 20px;
+        padding: 30px;
+        transition: 0.3s;
+    }
+    .btn-analyze {
+        background-color: #d1b8b0;
+        color: white;
+        border-radius: 30px;
+        padding: 10px 30px;
+        font-weight: bold;
+        border: none;
+    }
+    .btn-analyze:hover {
+        background-color: #bfa59d;
+        color: white;
+    }
+    .item-card {
+        border: none;
+        border-radius: 15px;
+        overflow: hidden;
+        box-shadow: 0 10px 20px rgba(90, 74, 66, 0.05);
+        transition: transform 0.3s;
+        background: white;
+    }
+    .item-card:hover {
+        transform: translateY(-5px);
+    }
+    .price-badge {
+        background-color: #f8ebe9;
+        color: #d88a8a;
+        font-weight: bold;
+        border-radius: 10px;
+        padding: 5px 12px;
+        display: inline-block;
+        margin-bottom: 15px;
+    }
+    .form-group {
+        display: flex;
+        align-items: center;
+        margin-bottom: 15px;
+        justify-content: center; 
+    }
+    .form-group label {
+        width: 120px; 
+        text-align: right;
+        margin-right: 15px;
+        font-weight: bold;
+    }
+    .form-group input, .form-group select {
+        flex: 1;
+        max-width: 200px;
+        padding: 8px;
+        border: 1px solid #d1b8b0;
+        border-radius: 8px;
+    }
+    .action-row{
+        display: flex;
+        gap: 12px;
+        margin-top: 16px;
+    }
     .action-row > button{
-      flex: 1;
+        flex: 1;
     }
-
     .action-row > form{
-      flex: 1;
+        flex: 1;
     }
-
     .btn-action{
-      border-radius: 12px;
-      padding: 12px 0;
-      font-weight: 600;
+        border-radius: 12px;
+        padding: 12px 0;
+        font-weight: 600;
     }
-
     .description-preview {
         display: -webkit-box;
         -webkit-line-clamp: 3;
@@ -91,7 +107,6 @@
         line-height: 1.6;
         font-size: 0.85rem;
     }
-
     .view-more-link {
         color: #d1b8b0;
         text-decoration: none;
@@ -128,17 +143,36 @@
             <div class="row justify-content-center">
                 <div class="col-md-6">
                     <div class="upload-card shadow-sm">
-                        <form action="/upload-web" method="post" enctype="multipart/form-data" class="upload-section">
-                            <input type="file" name="file" required>
+                        <form action="/upload-web" method="post" enctype="multipart/form-data">
+                            <div class="mb-4">
+                                <input type="file" name="file" class="form-control" required>
+                            </div>
                             
-                            <select name="length">
-                                <option value="short">短文</option>
-                                <option value="medium" selected>標準</option>
-                                <option value="long">長文</option>
-                            </select>
-                        
-                            <input type="number" name="material_cost" placeholder="材料費 (円)" value="0">
-                            <input type="number" name="work_hours" placeholder="制作時間 (時間)" value="0" step="0.5">
+                            <div class="form-group">
+                                <label>文章量：</label>
+                                <select name="length">
+                                    <option value="short">短文</option>
+                                    <option value="medium" selected>標準</option>
+                                    <option value="long">長文</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label>材料費：</label>
+                                <div style="display: flex; align-items: center; flex: 1; max-width: 200px;">
+                                    <input type="number" name="material_cost" value="0" style="flex: 1;">
+                                    <span class="ms-2">円</span>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>制作時間：</label>
+                                <div style="display: flex; align-items: center; flex: 1; max-width: 200px;">
+                                    <input type="number" name="hours" placeholder="0" style="width: 60px;" min="0">
+                                    <span class="mx-1">h</span>
+                                    <input type="number" name="minutes" placeholder="0" style="width: 60px;" min="0" max="59">
+                                    <span class="ms-1">m</span>
+                                </div>
+                            </div>
                         
                             <button type="submit">AIで解析・保存</button>
                         </form>

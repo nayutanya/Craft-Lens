@@ -40,9 +40,12 @@ async def upload_web(
     file: UploadFile = File(...), 
     length: str = Form("medium"), 
     material_cost: int = Form(0), 
-    work_hours: float = Form(0.0), 
+    hours: int = Form(0),
+    minutes: int = Form(0), 
     db: Session = Depends(get_db)
 ):
+    work_hours = hours + (minutes / 60)
+    
     # 価格計算
     base_price_raw = (material_cost * 3) + (work_hours * 1100) 
     calculated_price = int(round(base_price_raw, -2)) 

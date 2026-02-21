@@ -35,17 +35,23 @@ async def read_item(request: Request, item_id: int, db: Session = Depends(get_db
     return templates.TemplateResponse("detail.html", {"request": request, "item": item})
 
 @app.post("/upload-web")
-async def upload_web(request: Request, file: UploadFile = File(...), length: str = Form("medium"), material_cost: int = Form(0), work_hours: float = Form(0.0), db: Session = Depends(get_db)):
-
+async def upload_web(
+    request: Request, 
+    file: UploadFile = File(...), 
+    length: str = Form("medium"), 
+    material_cost: int = Form(0), 
+    work_hours: float = Form(0.0), 
+    db: Session = Depends(get_db)
+):
     # 価格計算
-    base_price = (material_cost * 3) + (work_hours * 1100) 
-    price_logic = f"材料費({material_cost}円)の3倍に、作業時間({work_hours}時間)分の技術料を加味した合計{int(base_price)}円をベースに算出してください。"
-    
+    base_price_raw = (material_cost * 3) + (work_hours * 1100) 
+    calculated_price = int(round(base_price_raw, -2)) 
+
+    price_logic = f"材料費({material_cost}円)の3倍に、作業時間({work_hours}時間)分の技術料を加味した合計{calculated_price}円をベースに算出してください。"
     prompt = SYSTEM_PROMPT_TEMPLATE.format(
         length_instruction=LENGTH_MAPPING.get(length, LENGTH_MAPPING["medium"]),
         price_logic=price_logic
     )
-
     # 画像保存
     file_path = f"static/uploads/{file.filename}"
     with open(file_path, "wb") as buffer:
@@ -56,12 +62,20 @@ async def upload_web(request: Request, file: UploadFile = File(...), length: str
         content = f.read()
     ai_raw_result = analyze_image_file(content, prompt)
     res = json.loads(ai_raw_result)
+
+    #最終決定
+    final_price = res.get("price")
+    try:
+        final_numeric_price = int(round(float(final_price), -2))
+    except(TypeError, ValueError):
+        final_numeric_price = calculated_price
+    formatted_price = "{:,}".format(final_numeric_price)
     
     # DB保存
     new_item = models.Item(
         title=res.get("title", "無題の作品"),
         description=res.get("description", ""),
-        suggested_price=res.get("price", str(int(base_price))), 
+        suggested_price=formatted_price,
         image_url=f"/{file_path}"
     )
     db.add(new_item)

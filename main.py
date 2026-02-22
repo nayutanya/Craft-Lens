@@ -45,12 +45,21 @@ async def upload_web(
     db: Session = Depends(get_db)
 ):
     work_hours = hours + (minutes / 60)
-    
-    # 価格計算
-    base_price_raw = (material_cost * 3) + (work_hours * 1100) 
-    calculated_price = int(round(base_price_raw, -2)) 
 
-    price_logic = f"材料費({material_cost}円)の3倍に、作業時間({work_hours}時間)分の技術料を加味した合計{calculated_price}円をベースに算出してください。"
+    # 価格計算
+    is_incomplete_input = (material_cost == 0 or work_hours == 0)
+    if is_incomplete_input:
+        input_info = ""
+        if material_cost > 0: input_info += f"材料費は{material_cost}円です。"
+        if work_hours > 0: input_info += f"制作時間は{work_hours}時間です。"
+        
+        price_logic = f"{input_info}一部の情報が未入力なので、画像から作品のクオリティや市場相場をプロの目で判断し、最終的な販売価格を決定してください。入力済みの情報はあくまで参考値とし、それより高くなっても構いません。"
+        calculated_price = 0
+    else:
+        base_price_raw = (material_cost * 3) + (work_hours * 1100) 
+        calculated_price = int(round(base_price_raw, -2)) 
+        price_logic = f"材料費({material_cost}円)の3倍に、作業時間({work_hours}時間)分の技術料を加味した合計{calculated_price}円をベースに算出してください。"
+    
     prompt = SYSTEM_PROMPT_TEMPLATE.format(
         length_instruction=LENGTH_MAPPING.get(length, LENGTH_MAPPING["medium"]),
         price_logic=price_logic
@@ -70,8 +79,10 @@ async def upload_web(
     final_price = res.get("price")
     try:
         final_numeric_price = int(round(float(final_price), -2))
+        if final_numeric_price <= 0:
+            final_numeric_price = calculated_price if calculated_price > 0 else 1200
     except(TypeError, ValueError):
-        final_numeric_price = calculated_price
+        final_numeric_price = calculated_price if calculated_price > 0 else 1200
     formatted_price = "{:,}".format(final_numeric_price)
     
     # DB保存

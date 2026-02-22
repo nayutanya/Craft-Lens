@@ -1,16 +1,17 @@
-    function showLoading() {
-    const overlay = document.getElementById('loadingOverlay');
-    const btn = document.querySelector('.btn-analyze');
-    const btnText = document.getElementById('btnText');
+    document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('form[action="/upload-web"]');
+    const loadingOverlay = document
+    .getElementById('loadingOverlay');
 
-    if (overlay) overlay.style.display = 'flex';
-
-    if (btnText) {
-        btnText.innerHTML = '<i class="bi bi-hourglass-split me-2"></i>AIが解析中...';
+    if (form) {
+        form.addEventListener('submit', function() {
+            loadingOverlay.style.display = 'flex';
+            
+            const submitBtn = form.querySelector('button[type="submit"]');
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = "解析中...";
+            }
+        });
     }
-
-    setTimeout(() => {
-        if (btn) btn.disabled = true;
-    }, 0);
-        return true;
-        }
+});
